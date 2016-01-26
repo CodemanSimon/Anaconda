@@ -1,0 +1,182 @@
+# Anaconda
+The Stupid Snake
+package snake;
+
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+import java.util.Random;
+
+import javax.swing.JFrame;
+import javax.swing.Timer;
+
+/*
+ * @author: Simon Chen ( Taught by Jaryt Bustard)
+ * @version: 1/24/2016
+ */
+
+public class Snake implements ActionListener, KeyListener {
+
+    public static Snake snake;
+
+    public JFrame jframe;
+
+    public RenderPanel renderPanel;
+
+    public Timer timer = new Timer(20, this);
+
+    public ArrayList<Point> snakeParts = new ArrayList<Point>();
+
+    public static final int UP = 0, DOWN = 1, LEFT = 2, RIGHT = 3, SCALE = 10;
+
+    public int ticks = 0, direction = DOWN, score, tailLength = 10;
+
+    public Point head, cherry;
+
+    public boolean over = false, paused;
+
+    public Random random;
+
+    public Dimension dim;
+
+    public Snake() {
+        this.dim = Toolkit.getDefaultToolkit().getScreenSize();
+        this.jframe = new JFrame("Simon's Snake");
+        this.jframe.setVisible(true);
+        this.jframe.setSize(900, 750);
+        this.jframe.setResizable(false);
+        this.jframe.setLocation(this.dim.width / 2 - this.jframe.getWidth() / 2,
+                this.dim.height / 2 - this.jframe.getHeight() / 2);
+        this.jframe.add(this.renderPanel = new RenderPanel());
+        this.jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.jframe.addKeyListener(this);
+        this.startGame();
+    }
+
+    public void startGame() {
+        this.over = false;
+        this.paused = false;
+        this.score = 0;
+        this.tailLength = 10;
+        this.direction = DOWN;
+        this.head = new Point(0, -1);
+        this.random = new Random();
+        this.snakeParts.clear();
+        this.cherry = new Point(this.random.nextInt(79),
+                this.random.nextInt(71));
+        this.timer.start();
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent arg0) {
+        this.renderPanel.repaint();
+        // TODO Auto-generated method stub
+        this.ticks++;
+
+        if (this.ticks % 2 == 0 && this.head != null && !this.over
+                && !this.paused) {
+            this.snakeParts.add(new Point(this.head.x, this.head.y));
+            if (this.direction == UP) {
+                if (this.head.y - 1 >= 0
+                        && this.noTailAt(this.head.x, this.head.y - 1)) {
+                    this.head = new Point(this.head.x, this.head.y - 1);
+                } else {
+                    this.over = true;
+                }
+            }
+            if (this.direction == DOWN) {
+                if (this.head.y + 1 < 71
+                        && this.noTailAt(this.head.x, this.head.y + 1)) {
+                    this.head = new Point(this.head.x, this.head.y + 1);
+                } else {
+                    this.over = true;
+                }
+            }
+            if (this.direction == LEFT) {
+                if (this.head.x - 1 >= 0
+                        && this.noTailAt(this.head.x - 1, this.head.y)) {
+                    this.head = new Point(this.head.x - 1, this.head.y);
+                } else {
+                    this.over = true;
+                }
+            }
+            if (this.direction == RIGHT) {
+                if (this.head.x + 1 < 80
+                        && this.noTailAt(this.head.x + 1, this.head.y)) {
+                    this.head = new Point(this.head.x + 1, this.head.y);
+                } else {
+                    this.over = true;
+                }
+            }
+            if (this.snakeParts.size() > this.tailLength) {
+                this.snakeParts.remove(0);
+            }
+            if (this.cherry != null) {
+                if (this.head.equals(this.cherry)) {
+                    this.score += 10;
+                    this.tailLength++;
+                    this.cherry.setLocation(this.random.nextInt(79),
+                            this.random.nextInt(71));
+                }
+            }
+        }
+
+    }
+
+    public boolean noTailAt(int x, int y) {
+        for (Point point : this.snakeParts) {
+            if (point.equals(new Point(x, y))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        snake = new Snake();
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        int i = e.getKeyCode();
+        if ((i == KeyEvent.VK_A || i == KeyEvent.VK_LEFT)
+                && this.direction != RIGHT) {
+            this.direction = LEFT;
+        }
+        if ((i == KeyEvent.VK_D || i == KeyEvent.VK_RIGHT)
+                && this.direction != LEFT) {
+            this.direction = RIGHT;
+        }
+        if ((i == KeyEvent.VK_W || i == KeyEvent.VK_UP)
+                && this.direction != DOWN) {
+            this.direction = UP;
+        }
+        if ((i == KeyEvent.VK_S || i == KeyEvent.VK_DOWN)
+                && this.direction != UP) {
+            this.direction = DOWN;
+        }
+        if (i == KeyEvent.VK_SPACE) {
+            if (this.over) {
+                this.startGame();
+            } else {
+                this.paused = !this.paused;
+            }
+        }
+
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+    }
+
+}
